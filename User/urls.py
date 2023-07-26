@@ -11,7 +11,10 @@ urlpatterns = [
     path("Register/", Register.as_view(), name="Register"),
     path('login/', Login.as_view(), name="login"),
     path('otp/<uid>/', Otp.as_view() , name='otp'),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
+    path('Updateuser/', UpdateUser.as_view(), name="Updateuser"),
+    path('Searchalluser/', Searchalluser.as_view(), name="userview"),
+    path('follow/<int:follow>/', FollowUser.as_view(), name='follow-user'),
+     path('followers/', FollowerList.as_view(), name='follower-list'),
+    path('following/', FollowingList.as_view(), name='following-list'),
+    path('userview/', userview.as_view(), name="userview"),
 ]

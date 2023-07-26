@@ -17,27 +17,17 @@ class Coins_club_owner(models.Model):
     Bank_Acc_Details = models.CharField(max_length=50,default='',null=True, blank=True)
     UPI_Address = models.CharField(max_length=50,default='',null=True, blank=True)
     Paytm_Address = models.CharField(max_length=50,default='',null=True, blank=True)
+    token = models.CharField(max_length=300, null=True, blank=True)
     otp = models.CharField(max_length=8, null=True, blank=True)
     uid = models.UUIDField(default=uuid.uuid4)
     forget_password_token = models.CharField(max_length=100, null=True, blank=True)
     Otpcreated_at = models.DateTimeField(null=True, blank=True)
     Is_Approved= models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    coins = models.PositiveIntegerField(default=0) 
+    
 
     def __str__(self):
         return self.Name
 
-    @property
-    def imageURL(self):
-        try:
-            url = self.profile_picture.url
-        except:
-            url = ''
-        return url
-
-    @property
-    def documentURL(self):
-        try:
-            url = self.Introduction_voice.url
-        except:
-            url = ''
-        return url
+    

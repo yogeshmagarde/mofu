@@ -15,3 +15,8 @@ class OtpSerializer(serializers.ModelSerializer):
     class Meta:
         model =Jockey_club_owner
         fields =('otp',)
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Jockey_club_owner
+        fields = ('Name','email','Gender','Dob','profile_picture','Introduction_voice','Introduction_text')

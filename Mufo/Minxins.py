@@ -1,5 +1,6 @@
 
-from . import settings
+from . import settings 
+from django.http import HttpResponse,JsonResponse
 
 import requests
 
@@ -30,3 +31,32 @@ def send_otp_on_phone(mobile_number, otp):
     else:
         # Failed to send OTP
         return False
+    
+from User.models import User 
+from Audio_Jockey.models import Audio_Jockey
+from Coins_club_owner.models import Coins_club_owner
+from Coins_trader.models import Coins_trader
+from Jockey_club_owner.models import Jockey_club_owner
+
+def authenticate_token(view_func):
+    def wrapper(request, *args, **kwargs):
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[-1]
+
+        models = [User, Audio_Jockey,Jockey_club_owner, Coins_club_owner,Coins_trader,]
+        user = None
+
+        for model in models:
+            try:
+                user = model.objects.get(token=token)
+                break
+            except model.DoesNotExist:
+                continue
+
+        if user is None:
+            return JsonResponse({'error': 'Invalid token'}, status=401)
+
+        request.user = user
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
+

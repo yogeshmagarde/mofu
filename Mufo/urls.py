@@ -24,5 +24,8 @@ urlpatterns = [
     path("coins_trader/", include("Coins_trader.urls")),
     path("Jockey_club_owner/", include("Jockey_club_owner.urls")),
     path("User/", include("User.urls")),
+    path('api/chat/', include('Chat.api_urls')),
+    path('chat/', include('Chat.urls'), name='chat'),
+    path('coins/', include('coin.urls'), name='coin'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

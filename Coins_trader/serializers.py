@@ -17,3 +17,9 @@ class OtpSerializer(serializers.ModelSerializer):
     class Meta:
         model =Coins_trader
         fields =('otp',)
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coins_trader
+        fields = ('Name','email','Gender','Dob','profile_picture','Introduction_voice','Introduction_text')
