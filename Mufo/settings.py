@@ -204,6 +204,11 @@ MEDIA_URL = '/images/'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+CORS_ALLOWED_ORIGINS = [
+    "https://www.mufo.live",  # Add other allowed origins if needed
+    "http://mufo.live",
+]
+
 CORS_ALLOW_METHODS = (
     'GET',
     'POST',

@@ -43,4 +43,5 @@ urlpatterns = [
     path('room/<str:room_code>/', views.JoinRoomView.as_view(), name='join_room'),
     path('create-room/', views.RoomViewSets.as_view({'post': 'create'}), name='create_room'),
     path('rooms/', views.AllRoomView.as_view(), name='rooms'),
+    path('jockeyroom/', views.AllRoomofjockey.as_view(), name='jockeyroom'),
 ]

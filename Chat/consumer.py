@@ -27,7 +27,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.user = await self.get_user_from_token(self.sender_token)
 
         if not self.user:
-            self.sender = "AnonymousUser"
+            self.sender = "admin"
         else:
             self.sender = str(self.user)
 

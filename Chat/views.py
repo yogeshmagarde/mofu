@@ -145,3 +145,11 @@ class AllRoomView(APIView):
         Rooms= Room.objects.filter(is_public=1)
         serializer = serializers.RoomsGetSerializer(Rooms,many=True)
         return Response(serializer.data)
+    
+
+class AllRoomofjockey(APIView):
+    @method_decorator(authenticate_token)
+    def get(self,request):
+        Rooms= Room.objects.filter(creator=request.user.id)
+        serializer = serializers.RoomsGetSerializer(Rooms,many=True)
+        return Response(serializer.data)

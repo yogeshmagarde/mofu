@@ -24,6 +24,8 @@ from django.utils.decorators import method_decorator
 from Mufo.Minxins import authenticate_token
 from rest_framework.generics import ListAPIView
 from rest_framework.filters import SearchFilter
+from rest_framework import filters
+
 def Users(request):
     return HttpResponse("Hello, world. You're at the User index.")
 
@@ -130,11 +132,13 @@ class Otp(APIView):
         current_time = timezone.now()
         if otp == profile.otp and profile.Otpcreated_at and profile.Otpcreated_at > current_time:
             user_serializer = UserSerializer(profile)
-            return Response({'data': (user_serializer.data),'profile':str(profile.__class__.__name__) ,'id': str(profile.id),  'access': str(profile.token), 'message': "Login successfully"})
+            return Response({'data':{'data': (user_serializer.data),'profile':(profile.__class__.__name__) ,'id': (profile.id),  'access': str(profile.token), 'message': "Login successfully"}})
         else:
             return Response({'message': "Invalid OTP. Please try again"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+from django.shortcuts import get_object_or_404
 
 class UpdateUser(APIView):
     @method_decorator(authenticate_token)
@@ -144,43 +148,107 @@ class UpdateUser(APIView):
         serializer = UserUpdateSerializer(user)
         return Response(serializer.data)
     @method_decorator(authenticate_token)
-    def put(self, request,format=None):
+    def put(self, request, format=None):
         pk = request.user.id
-        user = User.objects.get(id=pk)
+        user = get_object_or_404(User, id=pk)
         serializer = UserUpdateSerializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     @method_decorator(authenticate_token)
     def delete(self, request, format=None):
         pk = request.user.id
         user = User.objects.get(id=pk)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class GetUserdata(APIView):
+    @method_decorator(authenticate_token)
+    def get(self, request):
+        try:
+            user = User.objects.get(id=request.user.id)
+            serializer = GetUserSerializer(user)
+            user_data = serializer.data
+            user_data['is_followed'] = self.is_followed(user, request.user)
+            user_data['follower_count'] = self.get_follower_count(user)
+            user_data['following_count'] = self.get_following_count(user)
+            return Response(user_data)
+        except User.DoesNotExist:
+            return Response({'success': False, 'message': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+
+    def is_followed(self, user, current_user):
+        return Follow.objects.filter(user=current_user, following_user=user).exists()
+
+    def get_follower_count(self, user):
+        return Follow.objects.filter(following_user=user).count()
+
+    def get_following_count(self, user):
+        return Follow.objects.filter(user=user).count()
+
     
 
 class Searchalluser(ListAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    filter_backends = [SearchFilter]
-    search_fields = ['Name','email']
+    serializer_class = UserSearchSerializer
+    filter_backends = [filters.SearchFilter]  
+    search_fields = ['Name', 'email']
+
+    @method_decorator(authenticate_token)  
+    def get(self, request, *args, **kwargs): 
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def get_queryset(self):
+        queryset = User.objects.exclude(id=self.request.user.id)
+        user = self.request.user
+        if user:
+            queryset = self.annotate_following(queryset, user)
+        return queryset
+
+    def annotate_following(self, queryset, user):
+        for user_obj in queryset:
+            user_obj.is_following = Follow.objects.filter(user=user, following_user=user_obj).exists()
+        return queryset
 
 
+class GetUser(APIView):
+    @method_decorator(authenticate_token)
+    def get(self, request, Userid):
+        try:
+            user = User.objects.get(id=Userid)
+            serializer = GetUserSerializer(user)
+            user_data = serializer.data
+            user_data['is_followed'] = self.is_followed(user, request.user)
+            user_data['follower_count'] = self.get_follower_count(user)
+            user_data['following_count'] = self.get_following_count(user)
+            return Response(user_data)
+        except User.DoesNotExist:
+            return Response({'success': False, 'message': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+
+    def is_followed(self, user, current_user):
+        return Follow.objects.filter(user=current_user, following_user=user).exists()
+
+    def get_follower_count(self, user):
+        return Follow.objects.filter(following_user=user).count()
+
+    def get_following_count(self, user):
+        return Follow.objects.filter(user=user).count()
 
 class FollowUser(APIView):
     @method_decorator(authenticate_token)
-    def post(self, request, follow):
+    def get(self, request, follow):
         try:
             following_user = User.objects.get(id=follow)
             follow_user, created = Follow.objects.get_or_create(user=request.user, following_user=following_user)
             
             if not created:
                 follow_user.delete()
-                return Response({'success': True, 'message': 'Unfollowed user.'})
+                return Response({'success': True, 'message': 'Unfollowed user'})
             else:
-                return Response({'success': True, 'message': 'Followed user.'})
+                return Response({'success': True, 'message': 'Followed user'})
         
         except User.DoesNotExist:
             return Response({'success': False, 'message': 'User does not exist.'})

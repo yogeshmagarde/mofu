@@ -27,10 +27,12 @@ class Room(models.Model):
 
     room_code = models.CharField(max_length=8)
     room_name = models.CharField(max_length=255)
+    room_Image = models.CharField(max_length=500,blank=True)
+    room_category = models.CharField(max_length=500,blank=True)
     is_public = models.IntegerField(choices=ROOM_VISIBILITY, default=1)
     creator = models.ForeignKey(Audio_Jockey, on_delete=models.CASCADE, null=True)
-    blocked_users = models.ManyToManyField(User, related_name='blocked_users_set',null=True,blank=True)
-    active_bots = models.ManyToManyField(Bot,null=True,blank=True) 
+    blocked_users = models.ManyToManyField(User, related_name='blocked_users_set',blank=True)
+    active_bots = models.ManyToManyField(Bot,blank=True) 
 
     def save(self, room_code=True, *args, **kwargs):
         if not room_code:

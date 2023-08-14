@@ -23,6 +23,17 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         model = User
         fields = ('Name','email','Gender','Dob','profile_picture','Introduction_voice','Introduction_text')
 
+class GetUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id','Name','email','Gender','Dob','profile_picture','Introduction_voice','Introduction_text',)
+
+class UserSearchSerializer(serializers.ModelSerializer):
+    is_following = serializers.BooleanField(read_only=True)
+    class Meta:
+        model = User
+        fields = ('id','Name','email','Gender','Dob','profile_picture','Introduction_voice','Introduction_text','is_following',)
+
 
 class FollowerSerializer(serializers.ModelSerializer):
     user = UserUpdateSerializer()
