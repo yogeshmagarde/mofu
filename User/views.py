@@ -1,4 +1,5 @@
-from django.http import HttpResponse,JsonResponse
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse, JsonResponse
 from Mufo.Minxins import *
 from .serializers import *
 
@@ -14,7 +15,7 @@ from datetime import timedelta
 from django.utils import timezone
 from datetime import timedelta
 
-from .models import User 
+from .models import User
 from Audio_Jockey.models import Audio_Jockey
 from Coins_club_owner.models import Coins_club_owner
 from Coins_trader.models import Coins_trader
@@ -26,6 +27,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.filters import SearchFilter
 from rest_framework import filters
 
+
 def Users(request):
     return HttpResponse("Hello, world. You're at the User index.")
 
@@ -36,45 +38,49 @@ class Register(APIView):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        phone=serializer.initial_data.get('phone')
-        email=serializer.initial_data.get('email')
+        phone = serializer.initial_data.get('phone')
+        email = serializer.initial_data.get('email')
         if serializer.is_valid():
 
             email_exists = Audio_Jockey.objects.filter(email=email).exists()
-            phone_number_exists = Audio_Jockey.objects.filter(phone=phone).exists()
+            phone_number_exists = Audio_Jockey.objects.filter(
+                phone=phone).exists()
 
             if email_exists or phone_number_exists:
                 message = 'Email already exists as an Audio_Jockey ' if email_exists else 'Phone number already exists as an Audio_Jockey '
                 return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST)
 
-            email_exists = Coins_club_owner.objects.filter(email=email).exists()
-            phone_number_exists = Coins_club_owner.objects.filter(phone=phone).exists()
+            email_exists = Coins_club_owner.objects.filter(
+                email=email).exists()
+            phone_number_exists = Coins_club_owner.objects.filter(
+                phone=phone).exists()
 
             if email_exists or phone_number_exists:
                 message = 'Email already exists as coin club owner ' if email_exists else 'Phone number already exists as coin club owner'
                 return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST)
-            
+
             email_exists = Coins_trader.objects.filter(email=email).exists()
-            phone_number_exists = Coins_trader.objects.filter(phone=phone).exists()
+            phone_number_exists = Coins_trader.objects.filter(
+                phone=phone).exists()
 
             if email_exists or phone_number_exists:
                 message = 'Email already exists as an Coins_trader ' if email_exists else 'Phone number already exists as an Coins_trader '
                 return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST)
 
-
-            email_exists = Jockey_club_owner.objects.filter(email=email).exists()
-            phone_number_exists = Jockey_club_owner.objects.filter(phone=phone).exists()
+            email_exists = Jockey_club_owner.objects.filter(
+                email=email).exists()
+            phone_number_exists = Jockey_club_owner.objects.filter(
+                phone=phone).exists()
 
             if email_exists or phone_number_exists:
                 message = 'Email already exists as an Jockey_club_owner ' if email_exists else 'Phone number already exists as an Jockey_club_owner '
                 return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST)
 
             token = secrets.token_hex(128)
-            serializer.save(token =token)
+            serializer.save(token=token)
             return Response({'data': str(serializer.data), 'access': str(token), 'message': "Register successfully"}, status=status.HTTP_201_CREATED)
 
         return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class Login(APIView):
@@ -85,7 +91,8 @@ class Login(APIView):
         phone = serializer.initial_data.get('phone')
 
         # Check if the phone number exists in any of the profile models
-        profiles = [Audio_Jockey, Coins_club_owner, Coins_trader, Jockey_club_owner,User]
+        profiles = [Audio_Jockey, Coins_club_owner,
+                    Coins_trader, Jockey_club_owner, User]
         profile = None
 
         for profile_model in profiles:
@@ -119,7 +126,8 @@ class Otp(APIView):
     def post(self, request, uid):
         serializer = self.serializer_class(data=request.data)
         otp = serializer.initial_data.get('otp')
-        profiles = [Audio_Jockey, Coins_club_owner, Coins_trader, Jockey_club_owner,User]
+        profiles = [Audio_Jockey, Coins_club_owner,
+                    Coins_trader, Jockey_club_owner, User]
         profile = None
 
         for profile_model in profiles:
@@ -132,13 +140,10 @@ class Otp(APIView):
         current_time = timezone.now()
         if otp == profile.otp and profile.Otpcreated_at and profile.Otpcreated_at > current_time:
             user_serializer = UserSerializer(profile)
-            return Response({'data':{'data': (user_serializer.data),'profile':(profile.__class__.__name__) ,'id': (profile.id),  'access': str(profile.token), 'message': "Login successfully"}})
+            return Response({'data': {'data': (user_serializer.data), 'profile': (profile.__class__.__name__), 'id': (profile.id),  'access': str(profile.token), 'message': "Login successfully"}})
         else:
             return Response({'message': "Invalid OTP. Please try again"}, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-from django.shortcuts import get_object_or_404
 
 class UpdateUser(APIView):
     @method_decorator(authenticate_token)
@@ -147,6 +152,7 @@ class UpdateUser(APIView):
         user = User.objects.get(id=pk)
         serializer = UserUpdateSerializer(user)
         return Response(serializer.data)
+
     @method_decorator(authenticate_token)
     def put(self, request, format=None):
         pk = request.user.id
@@ -188,15 +194,14 @@ class GetUserdata(APIView):
     def get_following_count(self, user):
         return Follow.objects.filter(user=user).count()
 
-    
 
 class Searchalluser(ListAPIView):
     serializer_class = UserSearchSerializer
-    filter_backends = [filters.SearchFilter]  
+    filter_backends = [filters.SearchFilter]
     search_fields = ['Name', 'email']
 
-    @method_decorator(authenticate_token)  
-    def get(self, request, *args, **kwargs): 
+    @method_decorator(authenticate_token)
+    def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -210,7 +215,8 @@ class Searchalluser(ListAPIView):
 
     def annotate_following(self, queryset, user):
         for user_obj in queryset:
-            user_obj.is_following = Follow.objects.filter(user=user, following_user=user_obj).exists()
+            user_obj.is_following = Follow.objects.filter(
+                user=user, following_user=user_obj).exists()
         return queryset
 
 
@@ -237,19 +243,21 @@ class GetUser(APIView):
     def get_following_count(self, user):
         return Follow.objects.filter(user=user).count()
 
+
 class FollowUser(APIView):
     @method_decorator(authenticate_token)
     def get(self, request, follow):
         try:
             following_user = User.objects.get(id=follow)
-            follow_user, created = Follow.objects.get_or_create(user=request.user, following_user=following_user)
-            
+            follow_user, created = Follow.objects.get_or_create(
+                user=request.user, following_user=following_user)
+
             if not created:
                 follow_user.delete()
                 return Response({'success': True, 'message': 'Unfollowed user'})
             else:
                 return Response({'success': True, 'message': 'Followed user'})
-        
+
         except User.DoesNotExist:
             return Response({'success': False, 'message': 'User does not exist.'})
 
@@ -257,19 +265,58 @@ class FollowUser(APIView):
 class FollowerList(APIView):
     @method_decorator(authenticate_token)
     def get(self, request):
-        followers = Follow.objects.filter(following_user_id=request.user.id)
-        serializer = FollowerSerializer(followers, many=True)
+        user = request.user  
+        followers = Follow.objects.filter(following_user=user)
+        followed_users = Follow.objects.filter(user=user, following_user__in=followers.values_list('user', flat=True))
+        
+        queryset = self.annotate_followers(followers, followed_users)
+        serializer = getfollowerSerializer(queryset, many=True)
+        
         return Response(serializer.data)
+
+    def annotate_followers(self, followers, followed_users):
+        user_dict = {}
+        followed_users_set = set(followed_users.values_list('following_user', flat=True))
+        
+        for follower in followers:
+            following_user = follower.user
+            user_dict[following_user.id] = {
+                "id": following_user.id,
+                "Name": following_user.Name,
+                "email": following_user.email,
+                "Gender": following_user.Gender,
+                "Dob": following_user.Dob,
+                "profile_picture": following_user.profile_picture,
+                "Introduction_voice": following_user.Introduction_voice,
+                "Introduction_text": following_user.Introduction_text,
+                "is_followed": following_user.id in followed_users_set
+            }
+        
+        return list(user_dict.values())
 
 
 class FollowingList(APIView):
     @method_decorator(authenticate_token)
-    def get(self, request):
-        following = Follow.objects.filter(user_id=request.user.id)
-        serializer = FollowingSerializer(following, many=True)
-        return Response(serializer.data)
-    
+    def get(self, request, *args, **kwargs):
+        following = Follow.objects.filter(user=request.user)
+        followed_users = [follow_obj.following_user for follow_obj in following]
 
+        user_data_list = []
+        for user in followed_users:
+            user_data = {
+                "id": user.id,
+                "Name": user.Name,
+                "email": user.email,
+                "Gender": user.Gender,
+                "Dob": user.Dob,
+                "profile_picture": user.profile_picture,
+                "Introduction_voice": user.Introduction_voice,
+                "Introduction_text": user.Introduction_text,
+                "is_followed": True  
+            }
+            user_data_list.append(user_data)
+
+        return Response(user_data_list)
 
 
 @method_decorator(authenticate_token, name='dispatch')
@@ -277,5 +324,4 @@ class userview(APIView):
     def get(self, request):
         user = request.user
         print(user)
-        return JsonResponse({'uid': user.uid, 'number': user.phone,"name":user.Name})
-
+        return JsonResponse({'uid': user.uid, 'number': user.phone, "name": user.Name})
