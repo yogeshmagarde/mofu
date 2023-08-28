@@ -90,7 +90,7 @@ from django.utils.decorators import method_decorator
 from Mufo.Minxins import authenticate_token
 import html
 from rest_framework.views import APIView
-
+from Chat.consumer import ChatConsumer
 
 class RoomViewSets(viewsets.ModelViewSet):
     serializer_class = serializers.RoomSerializer
@@ -110,16 +110,32 @@ class RoomViewSets(viewsets.ModelViewSet):
             },
             status=status.HTTP_201_CREATED
         )
+    # def retrieve(self, request, *args, **kwargs):
+    #     lookup_field = self.lookup_field or self.lookup_url_kwarg
+
+    #     lookup_kwargs = {lookup_field: self.kwargs[lookup_field]}
+    #     _ = get_object_or_404(Room, **lookup_kwargs)
+
+    #     queryset = Chat.objects.filter(room__room_code=self.kwargs[lookup_field],
+    #                                    created__range=(datetime.now() - timedelta(days=5), datetime.now()))
+    #     serializer = serializers.ChatSerializer(queryset, many=True)
+    #     return Response(serializer.data)
+
+    
     def retrieve(self, request, *args, **kwargs):
         lookup_field = self.lookup_field or self.lookup_url_kwarg
-
         lookup_kwargs = {lookup_field: self.kwargs[lookup_field]}
         _ = get_object_or_404(Room, **lookup_kwargs)
 
         queryset = Chat.objects.filter(room__room_code=self.kwargs[lookup_field],
                                        created__range=(datetime.now() - timedelta(days=5), datetime.now()))
         serializer = serializers.ChatSerializer(queryset, many=True)
-        return Response(serializer.data)
+        chat_messages=serializer.data
+        room_creator_profile_picture = _.creator.profile_picture if _.creator.profile_picture else None
+        
+        joined_room_profile_pictures = list(ChatConsumer.joined_room.values())
+        return Response({"chat_messages":chat_messages,"room_creator_profile_picture":room_creator_profile_picture,"joined_room_profile_pictures":joined_room_profile_pictures})
+
 
 
 

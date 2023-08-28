@@ -1,3 +1,5 @@
+
+
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from Mufo.Minxins import *
@@ -26,7 +28,9 @@ from Mufo.Minxins import authenticate_token
 from rest_framework.generics import ListAPIView
 from rest_framework.filters import SearchFilter
 from rest_framework import filters
-
+from master.serializers import *
+from master.models import *
+import uuid
 
 def Users(request):
     return HttpResponse("Hello, world. You're at the User index.")
@@ -34,10 +38,12 @@ def Users(request):
 
 class Register(APIView):
     serializer_class = UserSerializer
+    serializer_class1 = masterSerializer
     parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
+        serializer1 = self.serializer_class1(data=request.data)
         phone = serializer.initial_data.get('phone')
         email = serializer.initial_data.get('email')
         if serializer.is_valid():
@@ -77,7 +83,11 @@ class Register(APIView):
                 return Response({'message': message}, status=status.HTTP_400_BAD_REQUEST)
 
             token = secrets.token_hex(128)
-            serializer.save(token=token)
+            uid = uuid.uuid1()
+            usertype="User"
+            serializer.save(token =token,uid=uid,usertype=usertype)
+            if serializer1.is_valid():
+                serializer1.save(token =token,uid=uid,usertype=usertype,Is_Approved=True)
             return Response({'data': str(serializer.data), 'access': str(token), 'message': "Register successfully"}, status=status.HTTP_201_CREATED)
 
         return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -148,29 +158,41 @@ class Otp(APIView):
 class UpdateUser(APIView):
     @method_decorator(authenticate_token)
     def get(self, request, format=None):
-        pk = request.user.id
-        user = User.objects.get(id=pk)
+        pk = request.user.uid
+        user = User.objects.get(uid=pk)
         serializer = UserUpdateSerializer(user)
         return Response(serializer.data)
 
     @method_decorator(authenticate_token)
     def put(self, request, format=None):
-        pk = request.user.id
-        user = get_object_or_404(User, id=pk)
+        uid = request.user.uid
+        user = get_object_or_404(User, uid=uid)
+        common_objects = Common.objects.get(uid=uid)
+        print(common_objects)
         serializer = UserUpdateSerializer(user, data=request.data)
+        # serializer1 = masterUpdateSerializer(common_objects, data=request.data)
+        if common_objects:
+            serializer1 = masterUpdateSerializer(common_objects, data=request.data)
+            if serializer1.is_valid():
+                serializer1.save()
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    
     @method_decorator(authenticate_token)
     def delete(self, request, format=None):
-        pk = request.user.id
-        user = User.objects.get(id=pk)
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
+        pk = request.user.uid
+        user = User.objects.get(uid=pk)
+        commonuser = Common.objects.get(uid=pk)
+        if commonuser:
+            commonuser.delete()
+            user.delete()
+            return Response({"delete":"successfully"})
+        return Response({"delete":"unsuccessfully"})
+    
 class GetUserdata(APIView):
     @method_decorator(authenticate_token)
     def get(self, request):
@@ -325,3 +347,9 @@ class userview(APIView):
         user = request.user
         print(user)
         return JsonResponse({'uid': user.uid, 'number': user.phone, "name": user.Name})
+    
+class Alluser(APIView):
+    def get(self,request):
+        data=User.objects.all()
+        serialiser = UserSerializer(data,many=True)
+        return Response(serialiser.data)

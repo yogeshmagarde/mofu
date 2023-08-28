@@ -2,7 +2,6 @@
 
 from django.db import models
 import uuid
-# Create your models here.
 
 class User(models.Model):
     Name = models.CharField(max_length=20, blank=False, null=False)
@@ -15,14 +14,17 @@ class User(models.Model):
     Introduction_text = models.CharField(max_length=500, default='')
     Invitation_Code = models.IntegerField(null=True, blank=True)
     otp = models.CharField(max_length=8, null=True, blank=True)
-    uid = models.UUIDField(default=uuid.uuid4)
+    uid = models.CharField(max_length=50, null=True, blank=True)
+    usertype = models.CharField(max_length=50, null=True, blank=True)
     token = models.CharField(max_length=300, null=True, blank=True)
     forget_password_token = models.CharField(max_length=100, null=True, blank=True)
     Otpcreated_at = models.DateTimeField(null=True, blank=True)
+    Is_Approved= models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
     coins = models.PositiveIntegerField(default=0) 
     def __str__(self):
         return self.Name
+
 
 
 class Follow(models.Model):

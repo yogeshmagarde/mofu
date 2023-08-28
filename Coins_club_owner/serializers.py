@@ -22,4 +22,4 @@ class OtpSerializer(serializers.ModelSerializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Coins_club_owner
-        fields = ('Name','email','Gender','Dob','profile_picture','Introduction_voice','Introduction_text')
+        fields = ('Name','email','Gender','Dob','profile_picture','Introduction_voice','Introduction_text','phone')

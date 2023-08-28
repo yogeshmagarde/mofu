@@ -37,6 +37,7 @@ from Audio_Jockey.models import Audio_Jockey
 from Coins_club_owner.models import Coins_club_owner
 from Coins_trader.models import Coins_trader
 from Jockey_club_owner.models import Jockey_club_owner
+from master.models import Common
 
 def authenticate_token(view_func):
     def wrapper(request, *args, **kwargs):

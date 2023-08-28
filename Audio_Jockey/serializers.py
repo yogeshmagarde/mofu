@@ -23,4 +23,4 @@ class OtpSerializer(serializers.ModelSerializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Audio_Jockey
-        fields = ('Name','email','Gender','Dob','profile_picture','Introduction_voice','Introduction_text')
+        fields = ('Name','email','phone','Gender','Dob','profile_picture','Introduction_voice','Introduction_text')

@@ -1,6 +1,5 @@
 from django.db import models
 import uuid
-# Create your models here.
 
 
 class Coins_club_owner(models.Model):
@@ -19,7 +18,8 @@ class Coins_club_owner(models.Model):
     Paytm_Address = models.CharField(max_length=50,default='',null=True, blank=True)
     token = models.CharField(max_length=300, null=True, blank=True)
     otp = models.CharField(max_length=8, null=True, blank=True)
-    uid = models.UUIDField(default=uuid.uuid4)
+    uid = models.CharField(max_length=50, null=True, blank=True)
+    usertype = models.CharField(max_length=50, null=True, blank=True)
     forget_password_token = models.CharField(max_length=100, null=True, blank=True)
     Otpcreated_at = models.DateTimeField(null=True, blank=True)
     Is_Approved= models.BooleanField(default=False)
@@ -28,6 +28,4 @@ class Coins_club_owner(models.Model):
     
 
     def __str__(self):
-        return self.Name
-
-    
+        return str(self.id)+"   "+str(self.Name)

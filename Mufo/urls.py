@@ -34,5 +34,6 @@ urlpatterns = [
     path('api/chat/', include('Chat.api_urls')),
     path('chat/', include('Chat.urls'), name='chat'),
     path('coins/', include('coin.urls'), name='coin'),
+    path('master/', include('master.urls'), name='master'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
